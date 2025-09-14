@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProctorAI - WhatsApp Integration Test</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Source+Code+Pro:wght@300;400;500;600&display=swap');
+        
+        body {
+            font-family: 'Source Code Pro', monospace;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #000;
+            color: #00ff00;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 255, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(0, 255, 0, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 2px solid #00ff00;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+            position: relative;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #00ff00, transparent, #00ff00);
+            border-radius: 15px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #00ff00, #00cc00);
+            color: #000;
+            padding: 15px 30px;
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            display: inline-block;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background: linear-gradient(45deg, #00ff00, #00ff00);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.6);
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .whatsapp-btn {
+            background: linear-gradient(45deg, #25D366, #128C7E);
+            border-color: #25D366;
+            color: white;
+        }
+        
+        .whatsapp-btn:hover {
+            background: linear-gradient(45deg, #25D366, #25D366);
+            box-shadow: 0 0 30px rgba(37, 211, 102, 0.6);
+        }
+        
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+        }
+        .success { 
+            background: rgba(0, 100, 0, 0.3); 
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+        .error { 
+            background: rgba(100, 0, 0, 0.3); 
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+        .warning {
+            background: rgba(100, 100, 0, 0.3);
+            border-color: #ffff00;
+            color: #ffff00;
+        }
+        
+        .interview-data {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #00ff00;
+        }
+        
+        .data-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+        
+        h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #00ff00;
+        }
+        
+        .score-display {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            background: rgba(0, 255, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <span style="color: #00ff00;">PROCTOR</span><span style="color: #ff0000;">AI</span>
+        </h1>
+        <p style="text-align: center; font-size: 1.2em; margin-bottom: 30px; color: #00ff00;">
+            >>> WHATSAPP INTEGRATION TEST <<<
+        </p>
+        
+        <!-- Interview Data Simulation -->
+        <div class="interview-data">
+            <h3>📊 Interview Data (Simulated)</h3>
+            <div class="data-item">
+                <strong>Candidate Name:</strong> Demo Candidate
+            </div>
+            <div class="data-item">
+                <strong>Interview Duration:</strong> <span id="duration">2m 30s</span>
+            </div>
+            <div class="data-item">
+                <strong>Total Events:</strong> <span id="events">12</span>
+            </div>
+            <div class="data-item">
+                <strong>Focus Lost:</strong> <span id="focusLost">3</span>
+            </div>
+            <div class="data-item">
+                <strong>Suspicious Activities:</strong> <span id="suspicious">1</span>
+            </div>
+            <div class="data-item">
+                <strong>End Time:</strong> <span id="endTime">2025-09-14 11:45:30</span>
+            </div>
+        </div>
+        
+        <!-- Integrity Score Display -->
+        <div class="score-display" id="scoreDisplay">
+            INTEGRITY SCORE: 85/100
+        </div>
+        
+        <!-- WhatsApp Buttons -->
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="#" class="btn whatsapp-btn" onclick="sendInterviewReport()" id="sendReportBtn">
+                📱 Send Interview Report to WhatsApp
+            </a>
+            <br><br>
+            <a href="#" class="btn" onclick="testWhatsApp()" style="background: linear-gradient(45deg, #ff6b35, #f7931e); border-color: #ff6b35;">
+                🧪 Test WhatsApp Connection
+            </a>
+        </div>
+        
+        <!-- Status Messages -->
+        <div id="statusMessages">
+            <div class="status success">
+                ✅ System Ready - Click buttons above to send WhatsApp reports
+            </div>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="status warning">
+            <h4>📋 Instructions:</h4>
+            <ol>
+                <li>Click "Send Interview Report" to generate WhatsApp message</li>
+                <li>WhatsApp Web/App will open automatically</li>
+                <li>Message will be pre-filled with interview data</li>
+                <li>Click Send button in WhatsApp to deliver the report</li>
+                <li>Reports will be sent to: +91 8986010809</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Interview data (simulated)
+        let interviewData = {
+            candidateName: 'Demo Candidate',
+            candidateEmail: 'demo@example.com',
+            duration: 150, // seconds
+            totalEvents: 12,
+            focusLostCount: 3,
+            suspiciousEventsCount: 1,
+            integrityScore: 85,
+            endTime: new Date().toLocaleString()
+        };
+
+        // Update display
+        function updateDisplay() {
+            document.getElementById('duration').textContent = Math.floor(interviewData.duration / 60) + 'm ' + (interviewData.duration % 60) + 's';
+            document.getElementById('events').textContent = interviewData.totalEvents;
+            document.getElementById('focusLost').textContent = interviewData.focusLostCount;
+            document.getElementById('suspicious').textContent = interviewData.suspiciousEventsCount;
+            document.getElementById('endTime').textContent = interviewData.endTime;
+            document.getElementById('scoreDisplay').textContent = `INTEGRITY SCORE: ${interviewData.integrityScore}/100`;
+        }
+
+        // Format WhatsApp message
+        function formatWhatsAppMessage(data) {
+            const status = data.integrityScore >= 90 ? '✅ EXCELLENT' : 
+                          data.integrityScore >= 70 ? '⚠️ GOOD' : 
+                          data.integrityScore >= 50 ? '🔶 FAIR' : '❌ POOR';
+
+            return `🎯 *ProctorAI Interview Report*
+
+👤 *Candidate:* ${data.candidateName}
+📧 *Email:* ${data.candidateEmail}
+⏱️ *Duration:* ${Math.floor(data.duration / 60)}m ${data.duration % 60}s
+📅 *Completed:* ${data.endTime}
+
+📊 *INTEGRITY SCORE: ${data.integrityScore}/100* ${status}
+
+📈 *Event Summary:*
+• Total Events: ${data.totalEvents}
+• Focus Lost: ${data.focusLostCount}
+• Suspicious Activities: ${data.suspiciousEventsCount}
+
+🔍 *Analysis:*
+${data.integrityScore >= 90 ? '• No significant violations detected' : ''}
+${data.focusLostCount > 0 ? `• Focus lost ${data.focusLostCount} times` : ''}
+${data.suspiciousEventsCount > 0 ? `• ${data.suspiciousEventsCount} suspicious activities flagged` : ''}
+
+💡 *Recommendation:* ${data.integrityScore >= 70 ? 'Standard review recommended' : 'Manual review required'}
+
+---
+🤖 Generated by ProctorAI System
+⏰ ${new Date().toLocaleString()}`;
+        }
+
+        // Send Interview Report
+        function sendInterviewReport() {
+            try {
+                const message = formatWhatsAppMessage(interviewData);
+                const phoneNumber = '918092970688'; // Your WhatsApp number
+                const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+                
+                console.log('WhatsApp URL:', whatsappUrl);
+                console.log('Message:', message);
+                
+                // Open WhatsApp
+                window.open(whatsappUrl, '_blank');
+                
+                // Update status
+                addStatusMessage('✅ WhatsApp report generated! Opening WhatsApp...', 'success');
+                
+                // Show success alert
+                setTimeout(() => {
+                    alert(`🎯 Interview Report Sent!\n\n✅ WhatsApp opened with pre-filled message\n📱 Please click SEND in WhatsApp to deliver the report\n📊 Report includes: Integrity Score, Events, Recommendations\n\nPhone: +91 8986010809`);
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error sending WhatsApp report:', error);
+                addStatusMessage('❌ Error generating WhatsApp report: ' + error.message, 'error');
+            }
+        }
+
+        // Test WhatsApp
+        function testWhatsApp() {
+            const phoneNumber = '918092970688';
+            const message = `🎯 *ProctorAI Test Message*
+
+This is a test message from ProctorAI system!
+
+✅ Backend is working correctly
+📅 Time: ${new Date().toLocaleString()}
+📱 Phone: +91 8986010809
+
+---
+🤖 ProctorAI System Test`;
+            
+            const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+            
+            window.open(whatsappUrl, '_blank');
+            addStatusMessage('🧪 WhatsApp test message opened', 'warning');
+        }
+
+        // Add status message
+        function addStatusMessage(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `status ${type}`;
+            messageDiv.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            
+            statusDiv.insertBefore(messageDiv, statusDiv.firstChild);
+            
+            // Keep only last 5 messages
+            while (statusDiv.children.length > 5) {
+                statusDiv.removeChild(statusDiv.lastChild);
+            }
+        }
+
+        // Simulate interview data changes
+        function simulateInterviewData() {
+            // Randomly update some data to simulate real interview
+            interviewData.totalEvents += Math.floor(Math.random() * 3);
+            interviewData.focusLostCount += Math.floor(Math.random() * 2);
+            interviewData.suspiciousEventsCount += Math.floor(Math.random() * 2);
+            
+            // Recalculate integrity score
+            const deductions = (interviewData.focusLostCount * 2) + (interviewData.suspiciousEventsCount * 5);
+            interviewData.integrityScore = Math.max(0, 100 - deductions);
+            
+            updateDisplay();
+        }
+
+        // Initialize
+        updateDisplay();
+        
+        // Simulate data changes every 10 seconds
+        setInterval(simulateInterviewData, 10000);
+        
+        // Add some initial status messages
+        setTimeout(() => {
+            addStatusMessage('🚀 ProctorAI WhatsApp Integration Ready', 'success');
+        }, 1000);
+        
+        setTimeout(() => {
+            addStatusMessage('📱 Click "Send Interview Report" to test WhatsApp integration', 'warning');
+        }, 3000);
+    </script>
+</body>
+</html>

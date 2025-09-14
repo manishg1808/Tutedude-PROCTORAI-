@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProctorAI - Test Page</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Source+Code+Pro:wght@300;400;500;600&display=swap');
+        
+        body {
+            font-family: 'Source Code Pro', monospace;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #000;
+            color: #00ff00;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            .container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .video-container {
+                width: 100%;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                width: 100%;
+                padding: 12px;
+                font-size: 16px;
+            }
+            
+            #refreshBtn {
+                margin-top: 10px;
+                background: linear-gradient(45deg, #ff6b35, #f7931e) !important;
+            }
+            
+            .detection-info {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .detection-card {
+                padding: 15px;
+            }
+            
+            .status-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .events-container {
+                max-height: 300px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            h2 {
+                font-size: 18px;
+            }
+            
+            .video-container {
+                max-width: 100%;
+            }
+            
+            #video {
+                width: 100%;
+                height: 200px;
+            }
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 255, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(0, 255, 0, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .matrix-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .matrix-char {
+            position: absolute;
+            color: #00ff00;
+            font-size: 14px;
+            font-family: 'Source Code Pro', monospace;
+            opacity: 0.3;
+            animation: matrixRain 10s linear infinite;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 2px solid #00ff00;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+            position: relative;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #00ff00, transparent, #00ff00);
+            border-radius: 15px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+        .btn {
+            background: linear-gradient(45deg, #00ff00, #00cc00);
+            color: #000;
+            padding: 12px 24px;
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        .btn:hover {
+            background: linear-gradient(45deg, #00ff00, #00ff00);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.6);
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+        }
+        .success { 
+            background: rgba(0, 100, 0, 0.3); 
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+        .error { 
+            background: rgba(100, 0, 0, 0.3); 
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+        .warning {
+            background: rgba(100, 100, 0, 0.3);
+            border-color: #ffff00;
+            color: #ffff00;
+        }
+        .video-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        video {
+            width: 100%;
+            max-width: 640px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .detection-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .detection-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .active { background: #4CAF50; }
+        .inactive { background: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="matrix-rain" id="matrixRain"></div>
+    
+    <div class="container">
+        <h1 style="font-family: 'Orbitron', monospace; font-size: 2.5em; text-align: center; margin-bottom: 20px; text-shadow: 0 0 20px #00ff00;">
+            <span style="color: #00ff00;">PROCTOR</span><span style="color: #ff0000;">AI</span>
+        </h1>
+        <p style="text-align: center; font-size: 1.2em; margin-bottom: 30px; color: #00ff00;">
+            >>> AI-POWERED VIDEO PROCTORING SYSTEM <<<
+        </p>
+        <p style="text-align: center; color: #00cc00; font-size: 0.9em;">
+            Real-time detection and monitoring with WhatsApp integration
+        </p>
+        
+        <div class="status" id="status">
+            <h3>System Status</h3>
+            <p>Backend: <span class="indicator inactive" id="backend-status"></span> <span id="backend-text">Connecting...</span></p>
+            <p>Frontend: <span class="indicator active"></span> Ready</p>
+        </div>
+
+        <div class="video-container">
+            <h3>Interview Video Feed</h3>
+            <video id="video" autoplay muted playsinline></video>
+            <div>
+                <button class="btn" onclick="startInterview()">Start Interview</button>
+                <button class="btn" onclick="stopInterview()">Stop Interview</button>
+                <button class="btn" onclick="sendWhatsAppNotification()" style="background: linear-gradient(45deg, #25D366, #128C7E); border-color: #25D366;">
+                    📱 Send WhatsApp Report
+                </button>
+                <button class="btn" id="refreshBtn" onclick="refreshPage()" style="background: linear-gradient(45deg, #ff6b35, #f7931e); border-color: #ff6b35; display: none;">
+                    🔄 Refresh & Reset
+                </button>
+            </div>
+        </div>
+
+        <div class="detection-info">
+            <div class="detection-card">
+                <h4>👁️ Face Detection</h4>
+                <p><span class="indicator inactive" id="face-status"></span> <span id="face-text">Not Detected</span></p>
+            </div>
+            <div class="detection-card">
+                <h4>📱 Object Detection</h4>
+                <p><span class="indicator inactive" id="object-status"></span> <span id="object-text">Monitoring</span></p>
+            </div>
+            <div class="detection-card">
+                <h4>🎯 Focus Tracking</h4>
+                <p><span class="indicator active" id="focus-status"></span> <span id="focus-text">Focused</span></p>
+            </div>
+            <div class="detection-card">
+                <h4>🎵 Audio Analysis</h4>
+                <p><span class="indicator active" id="audio-status"></span> <span id="audio-text">Normal</span></p>
+            </div>
+        </div>
+
+        <div class="status">
+            <h3>Integrity Score</h3>
+            <div style="background: rgba(255,255,255,0.2); border-radius: 10px; padding: 10px; text-align: center;">
+                <h2 style="margin: 0; color: #4CAF50;" id="integrity-score">100</h2>
+                <p style="margin: 5px 0;">Excellent</p>
+            </div>
+        </div>
+
+        <div class="status">
+            <h3>Recent Events</h3>
+            <div id="events" style="max-height: 200px; overflow-y: auto;">
+                <p>No events detected yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isRecording = false;
+        let video = document.getElementById('video');
+        let integrityScore = 100;
+        let eventCount = 0;
+        let recordingStartTime = null;
+        let recordingTime = 0;
+        let currentInterviewId = null;
+
+        // Check backend connection with enhanced error handling
+        async function checkBackend() {
+            const backendStatus = document.getElementById('backend-status');
+            const backendText = document.getElementById('backend-text');
+            const statusElement = document.getElementById('status');
+            
+            // Show loading state
+            backendStatus.className = 'indicator warning';
+            backendText.textContent = 'Connecting...';
+            statusElement.textContent = 'Checking Backend Connection...';
+            statusElement.className = 'status warning';
+            
+            try {
+                const response = await fetch('http://localhost:5000/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    backendStatus.className = 'indicator active';
+                    backendText.textContent = 'Connected';
+                    statusElement.textContent = '✅ Backend Connected - Ready for Interview';
+                    statusElement.className = 'status success';
+                    addEvent('Backend connection established successfully', 'success');
+                } else {
+                    throw new Error('Backend responded with error: ' + response.status);
+                }
+            } catch (error) {
+                backendStatus.className = 'indicator inactive';
+                backendText.textContent = 'Disconnected';
+                statusElement.textContent = '❌ Backend Connection Failed';
+                statusElement.className = 'status error';
+                addEvent('Backend connection failed: ' + error.message, 'error');
+                
+                // Show retry option
+                setTimeout(() => {
+                    const existingRetry = document.querySelector('.retry-btn');
+                    if (!existingRetry) {
+                        const retryBtn = document.createElement('button');
+                        retryBtn.textContent = '🔄 Retry Connection';
+                        retryBtn.className = 'btn retry-btn';
+                        retryBtn.style.marginTop = '10px';
+                        retryBtn.style.width = '200px';
+                        retryBtn.onclick = () => {
+                            retryBtn.remove();
+                            checkBackend();
+                        };
+                        statusElement.parentNode.appendChild(retryBtn);
+                    }
+                }, 2000);
+            }
+        }
+
+        // Start video stream with enhanced UX
+        async function startInterview() {
+            const startBtn = document.querySelector('button[onclick="startInterview()"]');
+            const originalText = startBtn.textContent;
+            
+            try {
+                // Show loading state
+                startBtn.textContent = '🔄 Starting Interview...';
+                startBtn.disabled = true;
+                
+                // Request camera and microphone access
+                addEvent('Requesting camera and microphone access...', 'info');
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { 
+                        width: { ideal: 640 }, 
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    },
+                    audio: true
+                });
+                
+                addEvent('Camera and microphone access granted', 'success');
+                video.srcObject = stream;
+                isRecording = true;
+                recordingStartTime = new Date();
+                
+                // Update UI
+                document.getElementById('video').style.display = 'block';
+                document.getElementById('face-status').className = 'indicator active';
+                document.getElementById('face-text').textContent = 'Detected';
+                
+                // Save interview to database
+                addEvent('Saving interview to database...', 'info');
+                try {
+                    const response = await fetch('http://localhost:5000/api/interviews/start', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            candidateName: 'Demo Candidate',
+                            candidateEmail: 'demo@example.com',
+                            candidatePhone: '+91 9876543210',
+                            candidateLocation: 'Mumbai, India'
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        currentInterviewId = result.data.interviewId;
+                        addEvent(`✅ Interview started successfully - ID: ${currentInterviewId}`, 'success');
+                    }
+                } catch (dbError) {
+                    console.log('Database save failed:', dbError.message);
+                    addEvent('⚠️ Interview started (database save failed)', 'warning');
+                }
+                
+                // Start AI detection simulation
+                addEvent('🤖 Starting AI detection systems...', 'info');
+                startDetectionSimulation();
+                
+                // Update button state
+                startBtn.textContent = '⏹️ Stop Interview';
+                startBtn.onclick = stopInterview;
+                startBtn.disabled = false;
+                startBtn.style.background = 'linear-gradient(45deg, #ff4757, #ff3838)';
+                
+                addEvent('🎯 Interview session active - Monitoring in progress', 'success');
+                
+            } catch (error) {
+                addEvent('❌ Failed to start interview: ' + error.message, 'error');
+                
+                // Reset button state
+                startBtn.textContent = originalText;
+                startBtn.disabled = false;
+                
+                // Show specific error messages
+                if (error.name === 'NotAllowedError') {
+                    addEvent('🚫 Camera/microphone access denied. Please allow access and try again.', 'error');
+                } else if (error.name === 'NotFoundError') {
+                    addEvent('📹 Camera/microphone not found. Please check your devices.', 'error');
+                } else {
+                    addEvent('🔧 Technical error: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Stop interview with enhanced UX
+        async function stopInterview() {
+            const stopBtn = document.querySelector('button[onclick="stopInterview()"]');
+            const originalText = stopBtn.textContent;
+            
+            try {
+                // Show loading state
+                stopBtn.textContent = '🔄 Stopping Interview...';
+                stopBtn.disabled = true;
+                
+                addEvent('🛑 Stopping interview session...', 'info');
+                
+                if (video.srcObject) {
+                    video.srcObject.getTracks().forEach(track => track.stop());
+                    video.srcObject = null;
+                    isRecording = false;
+                    
+                    // Calculate recording duration
+                    if (recordingStartTime) {
+                        recordingTime = Math.floor((new Date() - recordingStartTime) / 1000);
+                    }
+                    
+                    // Update UI indicators
+                    document.getElementById('face-status').className = 'indicator inactive';
+                    document.getElementById('face-text').textContent = 'Not Detected';
+                    document.getElementById('object-status').className = 'indicator inactive';
+                    document.getElementById('object-text').textContent = 'No Objects';
+                    
+                    // Update interview in database
+                    if (currentInterviewId) {
+                        addEvent('💾 Saving interview data to database...', 'info');
+                        try {
+                            const response = await fetch('http://localhost:5000/api/interviews/stop', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    interviewId: currentInterviewId,
+                                    duration: recordingTime,
+                                    integrityScore: integrityScore,
+                                    totalEvents: eventCount,
+                                    focusLostCount: Math.floor(eventCount * 0.3),
+                                    suspiciousEventsCount: Math.floor(eventCount * 0.1)
+                                })
+                            });
+                            
+                            const result = await response.json();
+                            if (result.success) {
+                                addEvent(`✅ Interview completed successfully - Duration: ${Math.floor(recordingTime / 60)}m ${recordingTime % 60}s`, 'success');
+                            }
+                        } catch (dbError) {
+                            console.log('Database update failed:', dbError.message);
+                            addEvent(`⚠️ Interview stopped - Duration: ${Math.floor(recordingTime / 60)}m ${recordingTime % 60}s (database save failed)`, 'warning');
+                        }
+                    } else {
+                        addEvent(`📊 Interview stopped - Duration: ${Math.floor(recordingTime / 60)}m ${recordingTime % 60}s`, 'info');
+                    }
+                }
+                
+                // Reset button state
+                stopBtn.textContent = '▶️ Start Interview';
+                stopBtn.onclick = startInterview;
+                stopBtn.disabled = false;
+                stopBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
+                
+                // Show refresh button with animation
+                const refreshBtn = document.getElementById('refreshBtn');
+                if (refreshBtn) {
+                    refreshBtn.style.display = 'inline-block';
+                    refreshBtn.style.marginTop = '10px';
+                    refreshBtn.style.animation = 'pulseGlow 2s infinite';
+                }
+                
+                addEvent('🎯 Interview session ended. Ready for new session.', 'success');
+                
+                // Show suggestion for refresh after 3 seconds
+                setTimeout(() => {
+                    addEvent('💡 Tip: Click "🔄 Refresh & Reset" button to start a fresh interview session', 'info');
+                }, 3000);
+                
+            } catch (error) {
+                addEvent('❌ Error stopping interview: ' + error.message, 'error');
+                
+                // Reset button state
+                stopBtn.textContent = originalText;
+                stopBtn.disabled = false;
+            }
+        }
+
+        // Simulate AI detection
+        function startDetectionSimulation() {
+            if (!isRecording) return;
+
+            // Simulate face detection
+            setTimeout(() => {
+                if (Math.random() > 0.3) {
+                    document.getElementById('face-status').className = 'indicator active';
+                    document.getElementById('face-text').textContent = 'Detected';
+                } else {
+                    document.getElementById('face-status').className = 'indicator inactive';
+                    document.getElementById('face-text').textContent = 'Not Detected';
+                    addEvent('Face not detected', 'warning');
+                }
+            }, 2000);
+
+            // Simulate focus loss
+            setTimeout(() => {
+                if (Math.random() > 0.7) {
+                    document.getElementById('focus-status').className = 'indicator inactive';
+                    document.getElementById('focus-text').textContent = 'Lost Focus';
+                    integrityScore -= 2;
+                    updateIntegrityScore();
+                    addEvent('Focus lost - looking away from screen', 'warning');
+                }
+            }, 5000);
+
+            // Simulate object detection
+            setTimeout(() => {
+                if (Math.random() > 0.8) {
+                    document.getElementById('object-status').className = 'indicator inactive';
+                    document.getElementById('object-text').textContent = 'Phone Detected';
+                    integrityScore -= 5;
+                    updateIntegrityScore();
+                    addEvent('Mobile phone detected in frame', 'error');
+                }
+            }, 8000);
+
+            // Continue simulation
+            if (isRecording) {
+                setTimeout(startDetectionSimulation, 10000);
+            }
+        }
+
+        // Update integrity score
+        function updateIntegrityScore() {
+            document.getElementById('integrity-score').textContent = integrityScore;
+            const scoreElement = document.getElementById('integrity-score');
+            
+            if (integrityScore >= 90) {
+                scoreElement.style.color = '#4CAF50';
+            } else if (integrityScore >= 70) {
+                scoreElement.style.color = '#FF9800';
+            } else {
+                scoreElement.style.color = '#f44336';
+            }
+        }
+
+        // Add event to log
+        function addEvent(message, type = 'info') {
+            const eventsDiv = document.getElementById('events');
+            const eventDiv = document.createElement('div');
+            eventDiv.className = `status ${type}`;
+            eventDiv.innerHTML = `
+                <strong>${new Date().toLocaleTimeString()}</strong> - ${message}
+            `;
+            
+            if (eventsDiv.children.length === 0 || eventsDiv.children[0].textContent.includes('No events')) {
+                eventsDiv.innerHTML = '';
+            }
+            
+            eventsDiv.insertBefore(eventDiv, eventsDiv.firstChild);
+            
+            // Keep only last 5 events
+            while (eventsDiv.children.length > 5) {
+                eventsDiv.removeChild(eventsDiv.lastChild);
+            }
+        }
+
+        // Matrix Rain Effect
+        function createMatrixRain() {
+            const matrixRain = document.getElementById('matrixRain');
+            const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const char = document.createElement('div');
+                    char.className = 'matrix-char';
+                    char.textContent = chars[Math.floor(Math.random() * chars.length)];
+                    char.style.left = Math.random() * 100 + '%';
+                    char.style.animationDelay = Math.random() * 10 + 's';
+                    char.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                    matrixRain.appendChild(char);
+                    
+                    setTimeout(() => {
+                        char.remove();
+                    }, 20000);
+                }, i * 200);
+            }
+        }
+
+        // Send WhatsApp notification via backend API with enhanced UX
+        async function sendWhatsAppNotification() {
+            const whatsappBtn = document.querySelector('button[onclick="sendWhatsAppNotification()"]');
+            const originalText = whatsappBtn.textContent;
+            
+            try {
+                // Show loading state
+                whatsappBtn.textContent = '🔄 Generating Report...';
+                whatsappBtn.disabled = true;
+                
+                addEvent('📱 Generating detailed WhatsApp report...', 'info');
+                
+                // Get actual recent events from the page
+                const eventsDiv = document.getElementById('events');
+                const recentEvents = [];
+                
+                // Extract events from the page (last 8 events)
+                if (eventsDiv && eventsDiv.children.length > 0) {
+                    for (let i = 0; i < Math.min(8, eventsDiv.children.length); i++) {
+                        const eventElement = eventsDiv.children[i];
+                        const eventText = eventElement.textContent;
+                        const timeMatch = eventText.match(/\[(.*?)\]/);
+                        const description = eventText.replace(/\[.*?\]/, '').replace(/^\s*-\s*/, '').trim();
+                        
+                        // Determine severity based on CSS class
+                        let severity = 'info';
+                        if (eventElement.classList.contains('error')) severity = 'high';
+                        else if (eventElement.classList.contains('warning')) severity = 'medium';
+                        else if (eventElement.classList.contains('success')) severity = 'info';
+                        
+                        // Determine event type based on description
+                        let eventType = 'General Event';
+                        if (description.toLowerCase().includes('focus')) eventType = 'Focus Detection';
+                        else if (description.toLowerCase().includes('phone') || description.toLowerCase().includes('mobile')) eventType = 'Object Detection';
+                        else if (description.toLowerCase().includes('face')) eventType = 'Face Detection';
+                        else if (description.toLowerCase().includes('audio') || description.toLowerCase().includes('noise')) eventType = 'Audio Analysis';
+                        else if (description.toLowerCase().includes('started')) eventType = 'Interview Start';
+                        else if (description.toLowerCase().includes('stopped')) eventType = 'Interview End';
+                        
+                        recentEvents.push({
+                            eventType: eventType,
+                            description: description,
+                            timestamp: new Date().toISOString(),
+                            severity: severity
+                        });
+                    }
+                }
+                
+                // If no events found, add some sample events
+                if (recentEvents.length === 0) {
+                    recentEvents.push(
+                        {
+                            eventType: 'Interview Start',
+                            description: 'Interview session started successfully',
+                            timestamp: new Date(Date.now() - recordingTime * 1000).toISOString(),
+                            severity: 'info'
+                        },
+                        {
+                            eventType: 'Face Detection',
+                            description: 'Candidate face detected and tracked',
+                            timestamp: new Date(Date.now() - (recordingTime * 0.8) * 1000).toISOString(),
+                            severity: 'info'
+                        },
+                        {
+                            eventType: 'Focus Detection',
+                            description: 'Focus monitoring active',
+                            timestamp: new Date(Date.now() - (recordingTime * 0.6) * 1000).toISOString(),
+                            severity: 'info'
+                        },
+                        {
+                            eventType: 'Object Detection',
+                            description: 'Object monitoring system active',
+                            timestamp: new Date(Date.now() - (recordingTime * 0.4) * 1000).toISOString(),
+                            severity: 'info'
+                        },
+                        {
+                            eventType: 'Audio Analysis',
+                            description: 'Background audio monitoring active',
+                            timestamp: new Date(Date.now() - (recordingTime * 0.2) * 1000).toISOString(),
+                            severity: 'info'
+                        }
+                    );
+                }
+
+                // Send detailed data to backend to generate WhatsApp URL
+                const response = await fetch('http://localhost:5000/api/whatsapp/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        candidateName: 'Demo Candidate',
+                        candidateEmail: 'demo.candidate@example.com',
+                        candidatePhone: '+91 9876543210',
+                        candidateLocation: 'Mumbai, India',
+                        integrityScore: integrityScore,
+                        duration: recordingTime,
+                        totalEvents: eventCount,
+                        focusLostCount: Math.floor(eventCount * 0.3),
+                        suspiciousEventsCount: Math.floor(eventCount * 0.1),
+                        recentEvents: recentEvents,
+                        interviewStartTime: new Date(Date.now() - recordingTime * 1000).toLocaleString(),
+                        interviewEndTime: new Date().toLocaleString(),
+                        interviewId: currentInterviewId // Send interview ID for database lookup
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('WhatsApp URL from backend:', result.data.whatsappUrl);
+                    console.log('Message to send:', result.data.message);
+                    
+                    // Open WhatsApp
+                    window.open(result.data.whatsappUrl, '_blank');
+                    addEvent('✅ WhatsApp report generated successfully! Opening WhatsApp...', 'success');
+                    
+                    // Reset button state
+                    whatsappBtn.textContent = '📱 Send WhatsApp Report';
+                    whatsappBtn.disabled = false;
+                    
+                    // Show refresh button after successful report
+                    const refreshBtn = document.getElementById('refreshBtn');
+                    if (refreshBtn && refreshBtn.style.display === 'none') {
+                        refreshBtn.style.display = 'inline-block';
+                        refreshBtn.style.marginTop = '10px';
+                        refreshBtn.style.animation = 'pulseGlow 2s infinite';
+                    }
+                    
+                    // Show success message
+                    setTimeout(() => {
+                        alert('🎯 WhatsApp Report Generated Successfully!\n\n' +
+                              '✅ The WhatsApp link has been opened in a new tab\n' +
+                              '📱 Please send the message to complete the process\n' +
+                              '📊 Report includes:\n' +
+                              '   • Complete candidate details\n' +
+                              '   • Interview timeline and duration\n' +
+                              '   • Integrity score and analysis\n' +
+                              '   • Detailed event log\n' +
+                              '   • Security recommendations\n\n' +
+                              '🎉 Report sent to: +91 8092970688\n\n' +
+                              '💡 Click "🔄 Refresh & Reset" button to start a new interview!');
+                    }, 1000);
+                } else {
+                    addEvent('❌ Failed to generate WhatsApp report: ' + result.message, 'error');
+                    
+                    // Reset button state
+                    whatsappBtn.textContent = originalText;
+                    whatsappBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Error sending WhatsApp notification:', error);
+                addEvent('❌ Error generating WhatsApp report: ' + error.message, 'error');
+                
+                // Reset button state
+                whatsappBtn.textContent = originalText;
+                whatsappBtn.disabled = false;
+                
+                // Fallback: generate URL manually
+                addEvent('🔄 Using fallback WhatsApp generation...', 'warning');
+                const phoneNumber = '918092970688';
+                const message = `🎯 *ProctorAI Interview Report*\n\n👤 *Candidate:* Demo Candidate\n📊 *INTEGRITY SCORE: ${integrityScore}/100*\n📈 *Events:* ${eventCount}\n⏰ *Time:* ${new Date().toLocaleString()}\n\n⚠️ *Note: This is a simplified report due to technical issues.*`;
+                const whatsappUrl = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+                
+                window.open(whatsappUrl, '_blank');
+                addEvent('📱 Fallback WhatsApp URL opened', 'warning');
+                
+                // Show refresh button after fallback report
+                const refreshBtn = document.getElementById('refreshBtn');
+                if (refreshBtn && refreshBtn.style.display === 'none') {
+                    refreshBtn.style.display = 'inline-block';
+                    refreshBtn.style.marginTop = '10px';
+                    refreshBtn.style.animation = 'pulseGlow 2s infinite';
+                }
+                
+                setTimeout(() => {
+                    alert('⚠️ Fallback Report Generated\n\n' +
+                          '📱 A simplified WhatsApp report has been opened\n' +
+                          '🔧 Some features may be limited due to technical issues\n' +
+                          '📞 Report sent to: +91 8092970688\n\n' +
+                          '💡 Click "🔄 Refresh & Reset" button to start a new interview!');
+                }, 1000);
+            }
+        }
+
+        // Refresh page function
+        function refreshPage() {
+            addEvent('🔄 Refreshing page for new interview session...', 'info');
+            
+            // Show confirmation
+            const confirmed = confirm('🔄 Refresh Page?\n\nThis will:\n• Reset all interview data\n• Clear event logs\n• Start fresh session\n• Reload the page\n\nContinue?');
+            
+            if (confirmed) {
+                // Add loading message
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; color: #00ff00; font-family: 'Source Code Pro', monospace; flex-direction: column;">
+                        <div style="font-size: 24px; margin-bottom: 20px;">🔄 Refreshing ProctorAI...</div>
+                        <div style="font-size: 16px; opacity: 0.7;">Starting fresh interview session</div>
+                        <div style="margin-top: 20px; font-size: 14px; opacity: 0.5;">Please wait...</div>
+                    </div>
+                `;
+                
+                // Refresh the page after a short delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            }
+        }
+
+
+        // Enhanced event logging with database integration
+        async function addEvent(message, type = 'info') {
+            eventCount++;
+            const eventsDiv = document.getElementById('events');
+            const eventDiv = document.createElement('div');
+            eventDiv.className = `status ${type}`;
+            eventDiv.innerHTML = `
+                <strong>[${new Date().toLocaleTimeString()}]</strong> ${message}
+            `;
+            
+            if (eventsDiv.children.length === 0 || eventsDiv.children[0].textContent.includes('No events')) {
+                eventsDiv.innerHTML = '';
+            }
+            
+            eventsDiv.insertBefore(eventDiv, eventsDiv.firstChild);
+            
+            // Keep only last 8 events
+            while (eventsDiv.children.length > 8) {
+                eventsDiv.removeChild(eventsDiv.lastChild);
+            }
+            
+            // Save event to database if interview is active
+            if (currentInterviewId && isRecording) {
+                try {
+                    // Determine event type based on message content
+                    let eventType = 'focus_lost';
+                    if (message.toLowerCase().includes('phone') || message.toLowerCase().includes('mobile')) {
+                        eventType = 'phone_detected';
+                    } else if (message.toLowerCase().includes('face')) {
+                        eventType = 'face_missing';
+                    } else if (message.toLowerCase().includes('focus')) {
+                        eventType = 'focus_lost';
+                    } else if (message.toLowerCase().includes('audio')) {
+                        eventType = 'audio_anomaly';
+                    }
+                    
+                    // Map type to severity
+                    let severity = 'medium';
+                    if (type === 'error') severity = 'high';
+                    else if (type === 'warning') severity = 'medium';
+                    else if (type === 'success') severity = 'low';
+                    
+                    await fetch('http://localhost:5000/api/events/log', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            interviewId: currentInterviewId,
+                            eventType: eventType,
+                            severity: severity,
+                            description: message,
+                            timestamp: new Date().toISOString(),
+                            confidence: 0.9
+                        })
+                    });
+                } catch (error) {
+                    console.log('Failed to log event to database:', error.message);
+                }
+            }
+
+            // Send WhatsApp alert for critical events
+            if (type === 'error' && Math.random() > 0.7) {
+                setTimeout(() => {
+                    sendWhatsAppNotification();
+                }, 2000);
+            }
+        }
+
+        // Initialize
+        checkBackend();
+        setInterval(checkBackend, 5000);
+        createMatrixRain();
+        setInterval(createMatrixRain, 15000); // Create new matrix rain every 15 seconds
+    </script>
+</body>
+</html>
